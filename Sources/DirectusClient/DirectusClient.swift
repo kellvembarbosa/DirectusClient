@@ -7,30 +7,6 @@ import Combine
 // MARK: example
  
 ```
-  Extensoes
- extension DirectusClient {
-     func getFaces(page: Int, perPage: Int = 10, selectedTag: Tag? = nil) -> AnyPublisher<DirectusResults<[Watchface]>, Error> {
-         let endPoint = "/items/example"
-         let request = URLRequest(url: getBaseURL(endPoint: endPoint, customParams: "?fields=*,tags.tags_id&filter[_and][0][status][_eq]=published&filter[_and][1][faceModel][_in]=\(AuthViewModel.shared.getCurrentWatchModelCompatibles)&limit=\(perPage)&page=\(page)\(selectedTag != nil ? "&filter[_and][2][_and][2][tags][tags_id][id][_in]=\(selectedTag!.id)" : "")"))
-
-         print("request: \(String(describing: request.url))")
-
-         return agent.run(request)
-             .map(\.value)
-             .eraseToAnyPublisher()
-     }
-
-     func getTags(page: Int, perPage: Int = 10) -> AnyPublisher<DirectusResults<[Tag]>, Error> {
-         let endPoint = "/items/tags"
-         let request = URLRequest(url: getBaseURL(endPoint: endPoint, customParams: "?fields=id,name&filter[_and][0][status][_eq]=published&limit=\(perPage)&page=\(page)&sort=sort"))
-
-         print("request: \(String(describing: request.url))")
-
-         return agent.run(request)
-             .map(\.value)
-             .eraseToAnyPublisher()
-     }
- }
 
   Exemplo de uso:
  let directusClient = DirectusClient(baseURL: URL(string: AppConfig.urlDirectus)!)
@@ -63,8 +39,25 @@ public class DirectusClient {
     public func getBaseURL(endPoint: String, customParams: String) -> URL {
         return URL(string: "\(baseURL.absoluteString + endPoint)\(customParams)")!
     }
+    
+    
+    /// only example
+    public func example(page: Int, perPage: Int = 10) -> AnyPublisher<DirectusResults<[Example]>, Error> {
+        let endPoint = "/items/example"
+        let request = URLRequest(url: getBaseURL(endPoint: endPoint, customParams: "?fields=id,name&filter[_and][0][status][_eq]=published&limit=\(perPage)&page=\(page)&sort=sort"))
+
+        print("request: \(String(describing: request.url))")
+
+        return agent.run(request)
+            .map(\.value)
+            .eraseToAnyPublisher()
+    }
 }
 
+/// only example
+public struct Example: Codable {
+    
+}
 
 
 public struct Agent {
