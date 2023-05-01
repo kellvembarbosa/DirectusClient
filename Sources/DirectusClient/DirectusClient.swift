@@ -30,7 +30,7 @@ import Combine
 
 public class DirectusClient {
     public let agent = Agent()
-    let baseURL: URL
+    public let baseURL: URL
 
     public init(baseURL: URL) {
         self.baseURL = baseURL

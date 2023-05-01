@@ -11,8 +11,8 @@ import Combine
 public struct Agent {
     // 1
     public struct Response<T> {
-        let value: T
-        let response: URLResponse
+        public let value: T
+        public let response: URLResponse
     }
     
     // 2
