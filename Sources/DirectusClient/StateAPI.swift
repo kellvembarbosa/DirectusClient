@@ -9,12 +9,14 @@ import SwiftUI
 
 public struct StateAPI <T: Codable> {
     public var items: T
-    public var page: Int = 1
-    public var canLoadNextPage = true
+    public var page: Int
+    public var canLoadNextPage: Bool
+    public var hasError: Bool
     
-    public init(items: T, page: Int = 1, canLoadNextPage: Bool = true) {
+    public init(items: T, page: Int = 1, canLoadNextPage: Bool = true, hasError: Bool = false) {
         self.items = items
         self.page = page
         self.canLoadNextPage = canLoadNextPage
+        self.hasError = hasError
     }
 }
