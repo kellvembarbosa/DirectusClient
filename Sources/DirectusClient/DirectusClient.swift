@@ -40,7 +40,6 @@ public class DirectusClient {
         return URL(string: "\(baseURL.absoluteString + endPoint)\(customParams)")!
     }
     
-    
     /// only example
     public func example(page: Int, perPage: Int = 10) -> AnyPublisher<DirectusResults<[Example]>, Error> {
         let endPoint = "/items/example"
