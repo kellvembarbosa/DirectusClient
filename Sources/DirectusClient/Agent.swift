@@ -15,27 +15,39 @@ public enum DebugLevel {
 }
 
 
+public enum DirectusError: Error {
+    case unauthorized
+    case other(Error)
+}
+
 public struct Agent {
     // 1
     public struct Response<T> {
         public let value: T
         public let response: URLResponse
     }
-    
-    // 2
+
     public func run<T: Decodable>(_ request: URLRequest, _ decoder: JSONDecoder = JSONDecoder(), debugLevel: DebugLevel = .none) -> AnyPublisher<Response<T>, Error> {
-        return URLSession.shared
-            .dataTaskPublisher(for: request) // 3
+            return URLSession.shared
+            .dataTaskPublisher(for: request)
             .tryMap { result -> Response<T> in
                 if debugLevel == .verbose {
                     print("DirectusClient ==> ", result)
                     print("DirectusClient ==> data: \(String(describing: String(data: result.data, encoding: .utf8)))")
                 }
-                let value = try decoder.decode(T.self, from: result.data) // 4
-                // print("kellvem 2", value)
-                return Response(value: value, response: result.response) // 5
+                
+                guard let httpResponse = result.response as? HTTPURLResponse else {
+                    throw DirectusError.other(NSError(domain: "Response cast error", code: 0, userInfo: nil))
+                }
+                
+                if httpResponse.statusCode == 401 {
+                    throw DirectusError.unauthorized
+                }
+                
+                let value = try decoder.decode(T.self, from: result.data)
+                return Response(value: value, response: result.response)
             }
-            .receive(on: DispatchQueue.main) // 6
-            .eraseToAnyPublisher() // 7
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }
