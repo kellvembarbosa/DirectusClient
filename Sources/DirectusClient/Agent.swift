@@ -21,6 +21,7 @@ public struct Agent {
             .dataTaskPublisher(for: request) // 3
             .tryMap { result -> Response<T> in
                 print("DirectusClient ==> ", result)
+                print("DirectusClient ==> data: \(String(data: result.data, encoding: .utf8))")
                 let value = try decoder.decode(T.self, from: result.data) // 4
                 // print("kellvem 2", value)
                 return Response(value: value, response: result.response) // 5
