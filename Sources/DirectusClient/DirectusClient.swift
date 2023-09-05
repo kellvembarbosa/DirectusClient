@@ -31,12 +31,14 @@ import Combine
 public class DirectusClient {
     public let agent = Agent()
     public let baseURL: URL
+    public let debugLevel: DebugLevel
 
-    public init(baseURL: URL) {
+    public init(baseURL: URL, debugLevel: DebugLevel = .none) {
         self.baseURL = baseURL
+        self.debugLevel = debugLevel
     }
 
-    public func getBaseURL(endPoint: String, customParams: String) -> URL {
+    public func getBaseURL(endPoint: String, customParams: String = "", debugLevel: DebugLevel = .none) -> URL {
         return URL(string: "\(baseURL.absoluteString + endPoint)\(customParams)")!
     }
     

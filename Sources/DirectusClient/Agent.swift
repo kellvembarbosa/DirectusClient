@@ -8,6 +8,13 @@
 import SwiftUI
 import Combine
 
+
+public enum DebugLevel {
+    case none
+    case verbose
+}
+
+
 public struct Agent {
     // 1
     public struct Response<T> {
@@ -16,12 +23,14 @@ public struct Agent {
     }
     
     // 2
-    public func run<T: Decodable>(_ request: URLRequest, _ decoder: JSONDecoder = JSONDecoder()) -> AnyPublisher<Response<T>, Error> {
+    public func run<T: Decodable>(_ request: URLRequest, _ decoder: JSONDecoder = JSONDecoder(), debugLevel: DebugLevel = .none) -> AnyPublisher<Response<T>, Error> {
         return URLSession.shared
             .dataTaskPublisher(for: request) // 3
             .tryMap { result -> Response<T> in
-                print("DirectusClient ==> ", result)
-                print("DirectusClient ==> data: \(String(data: result.data, encoding: .utf8))")
+                if debugLevel == .verbose {
+                    print("DirectusClient ==> ", result)
+                    print("DirectusClient ==> data: \(String(describing: String(data: result.data, encoding: .utf8)))")
+                }
                 let value = try decoder.decode(T.self, from: result.data) // 4
                 // print("kellvem 2", value)
                 return Response(value: value, response: result.response) // 5
