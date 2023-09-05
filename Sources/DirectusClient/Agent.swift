@@ -20,7 +20,7 @@ public struct Agent {
         return URLSession.shared
             .dataTaskPublisher(for: request) // 3
             .tryMap { result -> Response<T> in
-                // print("kellvem 1", result)
+                print("DirectusClient ==> ", result)
                 let value = try decoder.decode(T.self, from: result.data) // 4
                 // print("kellvem 2", value)
                 return Response(value: value, response: result.response) // 5
