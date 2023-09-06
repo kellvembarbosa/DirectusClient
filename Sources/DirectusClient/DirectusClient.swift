@@ -30,67 +30,110 @@ public class DirectusClient {
     
     
     /// Example of use for pagination
-    /// ```public func example(page: Int, perPage: Int = 10) -> AnyPublisher<DirectusResults<[Example]>, Error> {
-    ///        let endPoint = "/items/example"
-    ///         let request = URLRequest(url: getBaseURL(endPoint: endPoint, customParams: "?fields=id,name&filter[_and][0][status][_eq]=published&limit=\(perPage)&page=\(page)&sort=sort"))
-
-    ///         print("request: \(String(describing: request.url))")
-
-    ///         return agent.run(request)
-    ///         .map(\.value)
-    ///         .eraseToAnyPublisher()
+    /// =========
+    ///```getBaseURL(endPoint: endPoint, customParams: "?fields=id,name&filter[_and][0][status][_eq]=published&limit=\(perPage)&page=\(page)&sort=sort")```
+    /// =================
+    ///
+    ///```
+    ///  .tryMap { url -> URLRequest in
+    ///    var request = URLRequest(url: url)
+    ///    request.httpMethod = "GET"
+    ///    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+    ///
+    ///         return request
     ///     }
-    ///     ```
-    public func getBaseURL(endPoint: String, customParams: String = "") -> URL?  {
-        guard let baseURL = self.baseURL else {
-            return nil
+    ///     .flatMap { request in
+    ///     return self.agent.run(request)
+    ///        .map(\.value)
+    ///        .eraseToAnyPublisher()
+    /// }
+    /// ```
+    ///
+    ///  Exemplo de uso for POST with Custom body data
+    ///  ```
+    ///  .tryMap { url -> URLRequest in
+    ///    var request = URLRequest(url: url)
+    ///    request.httpMethod = "POST"
+    ///    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+    ///    let encoder = JSONEncoder()
+    ///    let data = try encoder.encode(login)
+    ///    request.httpBody = data
+    ///
+    ///         return request
+    ///     }
+    ///     .flatMap { request in
+    ///     return self.agent.run(request)
+    ///        .map(\.value)
+    ///        .eraseToAnyPublisher()
+    /// }
+    /// ```
+    ///
+    ///  Exemplo de uso for GET with Custom body data
+    ///  ```
+    ///  .tryMap { url -> URLRequest in
+    ///    var request = URLRequest(url: url)
+    ///    request.httpMethod = "GET"
+    ///    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+    ///
+    ///         return request
+    ///     }
+    ///     .flatMap { request in
+    ///     return self.agent.run(request)
+    ///        .map(\.value)
+    ///        .eraseToAnyPublisher()
+    /// }
+    /// ```
+    public func getBaseURL(endPoint: String, customParams: String = "") -> AnyPublisher<URL, Error> {
+        guard let baseURL = self.baseURL, let url = URL(string: "\(baseURL.absoluteString + endPoint)\(customParams)") else {
+            return Fail(error: DirectusError.invalidUrl).eraseToAnyPublisher()
         }
         
-        return URL(string: "\(baseURL.absoluteString + endPoint)\(customParams)")!
+        return Just(url).setFailureType(to: Error.self).eraseToAnyPublisher()
     }
     
-    func registerWithEmailAndPassword(_ login: LoginModel) -> AnyPublisher<Data, Error> {
-        guard let url = getBaseURL(endPoint: "/users") else { return Fail(error: DirectusError.invalidUrl).eraseToAnyPublisher() }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoder = JSONEncoder()
-        do {
-            let data = try encoder.encode(login)
-            request.httpBody = data
-        } catch {
-            return Fail(error: error).eraseToAnyPublisher()
-        }
-        
-        return agent.run(request)
-            .map(\.value)
+    public func registerWithEmailAndPassword(_ login: LoginModel) -> AnyPublisher<Data, Error> {
+        return getBaseURL(endPoint: "/users")
+            .tryMap { url -> URLRequest in
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                let encoder = JSONEncoder()
+                let data = try encoder.encode(login)
+                request.httpBody = data
+                
+                return request
+            }
+            .flatMap { request in
+                return self.agent.run(request)
+                    .map(\.value)
+                    .eraseToAnyPublisher()
+            }
             .eraseToAnyPublisher()
     }
     
-    func loginWithEmailAndPassword(_ login: LoginModel) -> AnyPublisher<DirectusResults<AccessTokenModel>, Error> {
-        guard let url = getBaseURL(endPoint: "/auth/login") else { return Fail(error: DirectusError.invalidUrl).eraseToAnyPublisher() }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoder = JSONEncoder()
-        
-        do {
-            let data = try encoder.encode(login)
-            request.httpBody = data
-        } catch {
-            return Fail(error: error).eraseToAnyPublisher()
-        }
-        
-        return agent.run(request)
-            .map(\.value)
+    public func loginWithEmailAndPassword(_ login: LoginModel) -> AnyPublisher<DirectusResults<AccessTokenModel>, Error> {
+        return getBaseURL(endPoint: "/auth/login")
+            .tryMap { url -> URLRequest in
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                let encoder = JSONEncoder()
+                let data = try encoder.encode(login)
+                request.httpBody = data
+                
+                return request
+            }
+            .flatMap { request in
+                return self.agent.run(request)
+                    .map(\.value)
+                    .eraseToAnyPublisher()
+            }
             .eraseToAnyPublisher()
     }
     
-    /// To use refreshToken
+    /// how to use refreshAndRetry
     /// It is necessary to handle the error in the function before eraseToAnyPublisher of its method, e.g. the .catch to be used:
     /// ```
     ///.catch { error -> AnyPublisher<DirectusResults<[FriendModel]>, Error> in
@@ -102,32 +145,84 @@ public class DirectusClient {
     ///    }
     ///}
     ///```
-    ///
-    func refreshToken() -> AnyPublisher<DirectusResults<AccessTokenModel>, Error> {
-        guard let url = getBaseURL(endPoint: "/auth/refresh") else { return Fail(error: DirectusError.invalidUrl).eraseToAnyPublisher() }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let encoder = JSONEncoder()
-        
-        if let refreshToken = getAccessToken()?.refreshToken {
-            do {
+    public func refreshAndRetry<T: Decodable>(_ request: URLRequest) -> AnyPublisher<T, Error> {
+        return getBaseURL(endPoint: "/auth/refresh")
+            .tryMap { url -> URLRequest in
+                var mutableRequest = request
+
+                guard let refreshToken = self.getAccessToken()?.refreshToken else {
+                    throw DirectusError.other(NSError())
+                }
+
+                let encoder = JSONEncoder()
                 let data = try encoder.encode(RefreshTokenModel(refreshToken: refreshToken))
-                request.httpBody = data
-            } catch {
+                mutableRequest.httpBody = data
+                mutableRequest.httpMethod = "POST"
+                mutableRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                return mutableRequest
+            }
+            .flatMap { mutableRequest in
+                return self.agent.run(mutableRequest)
+                    .map(\.value)
+                    .eraseToAnyPublisher()
+            }
+            .catch { error -> AnyPublisher<DirectusResults<AccessTokenModel>, Error> in
+                if case DirectusError.unauthorized = error {
+                    print("token catch if ")
+                    self.removeAccessToken()
+                }
                 return Fail(error: error).eraseToAnyPublisher()
             }
-            
-            return agent.run(request)
-                .map(\.value)
-                .eraseToAnyPublisher()
-        } else {
-            return Fail(error: NSError()).eraseToAnyPublisher()
-        }
+            .flatMap { [weak self] accessTokenModel -> AnyPublisher<T, Error> in
+                print("===> flatMap")
+
+                guard let self = self else {
+                    return Fail(error: NSError()).eraseToAnyPublisher()
+                }
+
+                self.saveAccessToken(accessTokenModel.data)
+                var mutableRequest = request
+                mutableRequest.setValue("Bearer \(accessTokenModel.data.accessToken)", forHTTPHeaderField: "Authorization")
+
+                return self.agent.run(mutableRequest)
+                    .map(\.value)
+                    .catch { error -> AnyPublisher<T, Error> in
+                        if case DirectusError.unauthorized = error {
+                            self.removeAccessToken()
+                        }
+                        return Fail(error: error).eraseToAnyPublisher()
+                    }
+                    .eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
     }
     
+    public func refreshToken() -> AnyPublisher<DirectusResults<AccessTokenModel>, Error> {
+        return getBaseURL(endPoint: "/auth/refresh")
+            .tryMap { url -> URLRequest in
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+                guard let refreshToken = self.getAccessToken()?.refreshToken else {
+                    throw DirectusError.other(NSError())
+                }
+
+                let encoder = JSONEncoder()
+                let data = try encoder.encode(RefreshTokenModel(refreshToken: refreshToken))
+                request.httpBody = data
+
+                return request
+            }
+            .flatMap { request in
+                return self.agent.run(request)
+                    .map(\.value)
+                    .eraseToAnyPublisher()
+            }
+            .eraseToAnyPublisher()
+    }
+
     
     public func saveAccessToken(_ token: AccessTokenModel) {
         if let encodedToken = try? JSONEncoder().encode(token) {
