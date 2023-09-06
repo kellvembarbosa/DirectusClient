@@ -8,9 +8,9 @@ import Foundation
 
 public struct RefreshTokenModel: Codable {
     public var refreshToken: String
-    public var mode: String = "json"
+    public var mode: String
     
-    public init(refreshToken: String, mode: String) {
+    public init(refreshToken: String, mode: String = "json") {
         self.refreshToken = refreshToken
         self.mode = mode
     }
