@@ -12,6 +12,12 @@ public struct AccessTokenModel: Codable {
     public var expires: Int
     public var refreshToken: String
     
+    public init(accessToken: String, expires: Int, refreshToken: String) {
+        self.accessToken = accessToken
+        self.expires = expires
+        self.refreshToken = refreshToken
+    }
+    
     public enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
         case expires

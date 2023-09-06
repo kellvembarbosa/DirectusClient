@@ -10,6 +10,11 @@ public struct RefreshTokenModel: Codable {
     public var refreshToken: String
     public var mode: String = "json"
     
+    public init(refreshToken: String, mode: String) {
+        self.refreshToken = refreshToken
+        self.mode = mode
+    }
+    
     public enum CodingKeys: String, CodingKey {
         case refreshToken = "refresh_token"
         case mode
