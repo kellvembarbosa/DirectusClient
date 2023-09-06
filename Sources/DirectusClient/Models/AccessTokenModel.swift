@@ -8,11 +8,11 @@
 import Foundation
 
 public struct AccessTokenModel: Codable {
-    var accessToken: String
-    var expires: Int
-    var refreshToken: String
+    public var accessToken: String
+    public var expires: Int
+    public var refreshToken: String
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
         case expires
         case refreshToken = "refresh_token"

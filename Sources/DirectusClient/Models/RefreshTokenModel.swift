@@ -7,10 +7,10 @@
 import Foundation
 
 public struct RefreshTokenModel: Codable {
-    var refreshToken: String
-    var mode: String = "json"
+    public var refreshToken: String
+    public var mode: String = "json"
     
-    enum CodingKeys: String, CodingKey {
+    public enum CodingKeys: String, CodingKey {
         case refreshToken = "refresh_token"
         case mode
     }

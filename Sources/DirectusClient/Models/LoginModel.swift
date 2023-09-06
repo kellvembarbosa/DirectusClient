@@ -8,6 +8,6 @@
 import SwiftUI
 
 public struct LoginModel: Codable {
-    var email: String
-    var password: String
+    public var email: String
+    public var password: String
 }
