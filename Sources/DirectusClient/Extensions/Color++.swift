@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+/// Color
+/// This extension helps to convert HEX to String and Colors String to Hex. It is useful in several cases when you need to communicate with the directus api
 public extension Color {
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)

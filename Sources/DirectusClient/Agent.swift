@@ -8,25 +8,7 @@
 import SwiftUI
 import Combine
 
-
-public enum DebugLevel {
-    case none
-    case verbose
-}
-
-
-public enum DirectusError: Error {
-    case unauthorized
-    case other(Error)
-}
-
 public struct Agent {
-    // 1
-    public struct Response<T> {
-        public let value: T
-        public let response: URLResponse
-    }
-
     public func run<T: Decodable>(_ request: URLRequest, _ decoder: JSONDecoder = JSONDecoder(), debugLevel: DebugLevel = .none) -> AnyPublisher<Response<T>, Error> {
             return URLSession.shared
             .dataTaskPublisher(for: request)
@@ -50,4 +32,9 @@ public struct Agent {
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
+}
+
+public struct Response<T> {
+    public let value: T
+    public let response: URLResponse
 }
