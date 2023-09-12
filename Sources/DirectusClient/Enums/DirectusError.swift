@@ -12,5 +12,6 @@ import Foundation
 public enum DirectusError: Error {
     case unauthorized
     case invalidUrl
+    case emptyResponse
     case other(Error)
 }
